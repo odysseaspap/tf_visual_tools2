@@ -1,6 +1,7 @@
-# TF Visual Tools
 
-Modification of original tf_visual_tools package (https://github.com/PickNikRobotics/tf_visual_tools) to support loading and editing of TFs defined through launch files. Following is the oginal README:
+Modification of original tf_visual_tools package (https://github.com/PickNikRobotics/tf_visual_tools) to support loading and editing of TFs defined through launch files. Following is the original README:
+
+# TF Visual Tools
 
 Easily move `\tf` frames around using your keyboard or mouse. Use as a simple calibration-by-eye tool or add menus and interative markers to create customized functionality.
 
