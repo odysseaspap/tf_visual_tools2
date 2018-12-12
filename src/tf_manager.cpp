@@ -1,21 +1,21 @@
 /****************************************************************************************************
  *  Software License Agreement (BSD License)
- *  
+ *
  *  Copyright 2017, Andy McEvoy
- *  
+ *
  *  Redistribution and use in source and binary forms, with or without modification, are permitted
  *  provided that the following conditions are met:
- *  
+ *
  *  1. Redistributions of source code must retain the above copyright notice, this list of conditions
  *  and the following disclaimer.
- *  
+ *
  *  2. Redistributions in binary form must reproduce the above copyright notice, this list of
  *  conditions and the following disclaimer in the documentation and/or other materials provided
  *  with the distribution.
- *  
+ *
  *  3. Neither the name of the copyright holder nor the names of its contributors may be used to
  *  endorse or promote products derived from this software without specific prior written permission.
- *  
+ *
  *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
  *  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
  *  FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
@@ -43,6 +43,7 @@ RvizTFPublisher::RvizTFPublisher()
   create_tf_sub_ = nh_.subscribe("/rviz_tf_create", 10, &RvizTFPublisher::createTF, this);
   remove_tf_sub_ = nh_.subscribe("/rviz_tf_remove", 10, &RvizTFPublisher::removeTF, this);
   update_tf_sub_ = nh_.subscribe("/rviz_tf_update", 10, &RvizTFPublisher::updateTF, this);
+  include_tf_sub_ = nh_.subscribe("/rviz_tf_include", 10, &RvizTFPublisher::includeTF, this)
 }
 
 void RvizTFPublisher::createTF(geometry_msgs::TransformStamped create_tf_msg)
@@ -59,7 +60,7 @@ void RvizTFPublisher::removeTF(geometry_msgs::TransformStamped remove_tf_msg)
     {
       active_tfs_.erase(active_tfs_.begin() + i);
       break;
-    }                                            
+    }
   }
 }
 
@@ -71,10 +72,17 @@ void RvizTFPublisher::updateTF(geometry_msgs::TransformStamped update_tf_msg)
         update_tf_msg.header.frame_id.compare(active_tfs_[i].header.frame_id) == 0)
     {
       active_tfs_[i].transform = update_tf_msg.transform;
-    }                                            
+    }
   }
 }
 
+void RvizTFPublisher::includeTF(geometry_msgs::TransformStamped include_tf_msg)
+{
+  active_tfs_.push_back(include_tf_msg);
+}
+//Odys: this tool takes TFs from active_tfs list and
+//publishes them to the topic /tf. However, we are already publishing our
+//transforms there (or to /tf_static) and this causes confusion to the subscribers.   
 void RvizTFPublisher::publishTFs()
 {
   static tf::TransformBroadcaster br;
@@ -85,6 +93,6 @@ void RvizTFPublisher::publishTFs()
     active_tfs_[i].header.stamp = ros::Time::now();
     tf::transformStampedMsgToTF(active_tfs_[i], tf);
     br.sendTransform(tf);
-  } 
+  }
 }
 } // end namespace tf_visual_tools
