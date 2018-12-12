@@ -45,7 +45,7 @@ RvizTFPublisher::RvizTFPublisher()
   create_tf_sub_ = nh_.subscribe("/rviz_tf_create", 10, &RvizTFPublisher::createTF, this);
   remove_tf_sub_ = nh_.subscribe("/rviz_tf_remove", 10, &RvizTFPublisher::removeTF, this);
   update_tf_sub_ = nh_.subscribe("/rviz_tf_update", 10, &RvizTFPublisher::updateTF, this);
-  //include_tf_sub_ = nh_.subscribe("/rviz_tf_include", 10, &RvizTFPublisher::includeTF, this)
+  include_tf_sub_ = nh_.subscribe("/rviz_tf_include", 10, &RvizTFPublisher::includeTF, this)
 }
 
 void RvizTFPublisher::createTF(geometry_msgs::TransformStamped create_tf_msg)
@@ -77,13 +77,12 @@ void RvizTFPublisher::updateTF(geometry_msgs::TransformStamped update_tf_msg)
     }
   }
 }
-/*
+
 void RvizTFPublisher::includeTF(geometry_msgs::TransformStamped include_tf_msg)
 {
   active_tfs_.push_back(include_tf_msg);
 }
 
-*/
 //Odys: this tool takes TFs from active_tfs list and
 //publishes them to the topic /tf. However, we are already publishing our
 //transforms there (or to /tf_static) and this causes confusion to the subscribers.
