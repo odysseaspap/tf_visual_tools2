@@ -73,7 +73,7 @@ private:
   ros::Publisher create_tf_pub_;
   ros::Publisher remove_tf_pub_;
   ros::Publisher update_tf_pub_;
-  ros::Publisher include_tf_pub_;
+  //ros::Publisher include_tf_pub_;
 
   std::vector< std::string > tf_names_;
 
@@ -81,7 +81,7 @@ private:
 
   tf2_ros::Buffer tf_buffer_;
   tf2_ros::TransformListener *tf_listener_;
-  
+
 }; // end class TFRemoteReceiver
 
 } // end namespace tf_visual_tools

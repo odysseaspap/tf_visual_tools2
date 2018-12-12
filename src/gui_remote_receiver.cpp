@@ -41,9 +41,13 @@ TFRemoteReceiver::TFRemoteReceiver()
 {
   std::cout << "\033[1;36m" << "Remote receiver initialized" << "\033[0m" << std::endl;
 
+  //these commands here advertise new topics with queue size 10 which are NOT latched
+  //note that our /tf_static topic is latched
   create_tf_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("/rviz_tf_create", 10);
   remove_tf_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("/rviz_tf_remove", 10);
   update_tf_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("/rviz_tf_update", 10);
+  //include_tf_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("/rviz_tf_include", 10);
+
 
   tf_listener_ = new tf2_ros::TransformListener(tf_buffer_);
 }
@@ -60,9 +64,15 @@ void TFRemoteReceiver::removeTF(geometry_msgs::TransformStamped remove_tf_msg)
 
 void TFRemoteReceiver::updateTF(geometry_msgs::TransformStamped update_tf_msg)
 {
-  update_tf_pub_.publish(update_tf_msg); 
+  update_tf_pub_.publish(update_tf_msg);
 }
-
+/*
+//TODO: Do I need to publish when I am including a TF?
+void TFRemoteReceiver::includeTF(geometry_msgs::TransformStamped include_tf_msg)
+{
+  include_tf_pub_.publish(include_tf_msg);
+}
+*/
 std::vector<std::string> TFRemoteReceiver::getTFNames()
 {
   tf_buffer_._getFrameStrings(tf_names_);
@@ -79,7 +89,7 @@ void TFRemoteReceiver::addIMarkerMenuPub(int menu_index, std::string menu_name)
       menu_name[i] = '_';
   }
 
-  
+
   std::string new_topic_name = "/imarker/" + menu_name;
   ros::Publisher new_pub = nh_.advertise<std_msgs::Bool>(new_topic_name, 1);
 

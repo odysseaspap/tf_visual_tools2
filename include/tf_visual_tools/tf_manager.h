@@ -63,12 +63,12 @@ private:
   //Providentia bridge_demo use-case:
   //TFs are defined in the launch files, so we want to load these
   //and use tf_visual_tools for editing, not creating new TFs
-  void includeTF(geomtery_msgs::TransformStamped include_tf_msg);
+  //void includeTF(geomtery_msgs::TransformStamped include_tf_msg);
 
   ros::Subscriber create_tf_sub_;
   ros::Subscriber remove_tf_sub_;
   ros::Subscriber update_tf_sub_;
-  ros::Subscriber include_tf_sub_;
+  //ros::Subscriber include_tf_sub_;
 
   std::vector< geometry_msgs::TransformStamped > active_tfs_;
 }; // end class RvizTFPublisher
