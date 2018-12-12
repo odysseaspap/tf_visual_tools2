@@ -58,7 +58,7 @@ public:
   void removeTF(geometry_msgs::TransformStamped remove_tf_msg);
   void updateTF(geometry_msgs::TransformStamped update_tf_msg);
 
-  void includeTF(geometry_msgs::TransformStamped include_tf_msg);
+  //void includeTF(geometry_msgs::TransformStamped include_tf_msg);
 
   void addIMarkerMenuPub(int menu_index, std::string menu_name);
   void publishIMarkerMenuSelection(int menu_index);
