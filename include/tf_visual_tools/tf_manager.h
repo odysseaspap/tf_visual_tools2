@@ -70,6 +70,7 @@ private:
   ros::Subscriber update_tf_sub_;
   ros::Subscriber include_tf_sub_;
 
+
   std::vector< geometry_msgs::TransformStamped > active_tfs_;
 }; // end class RvizTFPublisher
 

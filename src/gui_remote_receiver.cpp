@@ -43,9 +43,12 @@ TFRemoteReceiver::TFRemoteReceiver()
 
   //these commands here advertise new topics with queue size 10 which are NOT latched
   //note that our /tf_static topic is latched
+  //advertise() returns a Publisher object which allows you to
+  //publish messages on that topic through a call to publish().
   create_tf_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("/rviz_tf_create", 10);
   remove_tf_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("/rviz_tf_remove", 10);
   update_tf_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("/rviz_tf_update", 10);
+  //since I will include a lot of TFs here via the launch file, bigger queue size might be needed
   include_tf_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("/rviz_tf_include", 10);
 
 
@@ -68,6 +71,8 @@ void TFRemoteReceiver::updateTF(geometry_msgs::TransformStamped update_tf_msg)
 }
 
 //TODO: Do I need to publish when I am including a TF?
+//Yes, I can just publish the inlcuded TFs to the topic /rviz_tf_include
+//and the node /rviz_tfs will read them from there
 void TFRemoteReceiver::includeTF(geometry_msgs::TransformStamped include_tf_msg)
 {
   include_tf_pub_.publish(include_tf_msg);
@@ -75,6 +80,7 @@ void TFRemoteReceiver::includeTF(geometry_msgs::TransformStamped include_tf_msg)
 
 std::vector<std::string> TFRemoteReceiver::getTFNames()
 {
+  //get a std::vector of available frame ids. 
   tf_buffer_._getFrameStrings(tf_names_);
 
   return tf_names_;

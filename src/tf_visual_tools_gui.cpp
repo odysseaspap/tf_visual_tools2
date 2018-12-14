@@ -74,6 +74,8 @@ void TFVisualTools::updateTabData(int index)
 {
   new_manipulate_tab_->updateTFList();
   new_create_tab_->updateFromList();
+  new_create_tab_->updateToList();
+
 
   if (index == 1) // manipulate tab selected.
   {
@@ -95,7 +97,11 @@ createTFTab::createTFTab(QWidget *parent) : QWidget(parent)
   //from_->addItem(tr("Select existing or add new TF"));
   connect(from_, SIGNAL(editTextChanged(const QString &)), this, SLOT(fromTextChanged(const QString &)));
 
-  to_ = new QLineEdit;
+  //to_ = new QLineEdit;
+  //Make "To" field a dropdown box as well, to select directly
+  //TFs defined in the launch file
+  from_ = new QComboBox;
+  from_->setEditable(true);
   to_->setPlaceholderText("to TF");
   connect(to_, SIGNAL(textChanged(const QString &)), this, SLOT(toTextChanged(const QString &)));
 
@@ -108,6 +114,10 @@ createTFTab::createTFTab(QWidget *parent) : QWidget(parent)
   create_tf_btn_ = new QPushButton(this);
   create_tf_btn_->setText("Create TF");
   connect(create_tf_btn_, SIGNAL(clicked()), this, SLOT(createNewTF()));
+
+  include_tf_btn_ = new QPushButton(this);
+  include_tf_btn_->setText("Include TF");
+  connect(incldue_tf_btn_, SIGNAL(clicked()), this, SLOT(includeTF()));
 
   remove_tf_btn_ = new QPushButton(this);
   remove_tf_btn_->setText("Remove TF");
@@ -131,6 +141,8 @@ createTFTab::createTFTab(QWidget *parent) : QWidget(parent)
   create_row->addWidget(add_imarker_);
   create_row->addWidget(add_imarker_menu_);
   create_row->addWidget(create_tf_btn_);
+  //Include Button in the same row as Create
+  create_row->addWidget(include_tf_btn_);
 
   QHBoxLayout *remove_row = new QHBoxLayout;
   remove_row->addWidget(active_tfs_);
@@ -198,6 +210,81 @@ void createTFTab::createNewTF()
   remote_receiver_->createTF(new_tf.getTFMsg());
 
   updateFromList();
+  updateToList();
+
+}
+//TODO: Get already existing TFs from topic /tf (or /tf_static)
+//and add them to the topic /rviz_tf_include, without republishing the same TFs
+void createTFTab::includeTF()
+{
+  ROS_DEBUG_STREAM_NAMED("includeTF","include TF button pressed.");
+  ROS_DEBUG_STREAM_NAMED("includeTF","from:to = " << from_tf_name_ << ":" << to_tf_name_);
+
+  // include TF created from launch file
+  tf_data new_tf;
+  new_tf.id_ = id_++;
+  new_tf.from_ = from_tf_name_;
+  new_tf.to_ = to_tf_name_;
+
+  //create a tf listener as here: http://wiki.ros.org/tf2/Tutorials/Writing%20a%20tf2%20listener%20%28C%2B%2B%29
+  tf2_ros::Buffer tfBuffer;
+  tf2_ros::TransformListener tfListener(tfBuffer);
+
+
+  geometry_msgs::TransformStamped transformStamped;
+  try{
+    transformStamped = tfBuffer.lookupTransform(to_tf_name_, from_tf_name_, ros::Time(0));
+  }
+  catch (tf2::TransformException &ex)
+  {
+    ROS_WARN("%s",ex.what());
+    ros::Duration(1.0).sleep();
+    continue;
+  }
+  //Fill translation and rotation values as taken from /tf topic
+  new_tf.values_[0] = transformStamped.transform.translation.x;
+  new_tf.values_[1] = transformStamped.transform.translation.y;
+  new_tf.values_[2] = transformStamped.transform.translation.z;
+
+  //We listen to quaternion values so they must be
+  //first transformed to Roll, Pitch, Yaw
+  tf::Quaternion quat;
+  quat[0] = transformStamped.transform.rotation.x;
+  quat[1] = transformStamped.transform.rotation.y;
+  quat[2] = transformStamped.transform.rotation.z;
+  quat[3] = transformStamped.transform.rotation.w;
+
+  double roll, pitch, yaw;
+  tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
+  new_tf.values_[0] = roll;
+  new_tf.values_[1] = pitch;
+  new_tf.values_[2] = yaw;
+
+  std::string text = std::to_string(new_tf.id_) + ": " + new_tf.from_ + "-" + new_tf.to_;
+  new_tf.name_ = QString::fromStdString(text);
+
+  // interactive marker
+  new_tf.imarker_ = false;
+  if (add_imarker_->isChecked())
+  {
+    new_tf.imarker_ = true;
+    ROS_DEBUG_STREAM_NAMED("includeTF","imarker = " << new_tf.imarker_);
+    createNewIMarker(new_tf, add_imarker_menu_->isChecked());
+  }
+  active_tf_list_.push_back(new_tf);
+
+  // repopulate dropdown box
+  active_tfs_->clear();
+  for (std::size_t i = 0; i < active_tf_list_.size(); i++)
+  {
+    active_tfs_->addItem(active_tf_list_[i].name_);
+  }
+
+  // publish new tf
+  remote_receiver_->includeTF(new_tf.getTFMsg());
+
+  updateFromList();
+  updateToList();
 }
 
 void createTFTab::createNewIMarker(tf_data new_tf, bool has_menu)
@@ -388,6 +475,21 @@ void createTFTab::updateFromList()
   }
 }
 
+void createTFTab::updateToList()
+{
+  // give tf a chance to update
+  ros::Duration(0.25).sleep();
+
+  // update to list
+  to_->clear();
+  to_->setPlaceholderText("to TF");
+  std::vector<std::string> names = remote_receiver_->getTFNames();
+  for (std::size_t i = 0; i < names.size(); i++)
+  {
+    to_->addItem(tr(names[i].c_str()));
+  }
+}
+
 geometry_msgs::TransformStamped tf_data::getTFMsg()
 {
   geometry_msgs::TransformStamped msg;
@@ -451,6 +553,7 @@ void createTFTab::removeTF()
   {
     from_->addItem(tr( (*it).c_str() ));
   }
+  //TODO:update To list as well - is there one?
 
 }
 

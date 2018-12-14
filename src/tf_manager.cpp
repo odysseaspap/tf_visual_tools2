@@ -80,18 +80,22 @@ void RvizTFPublisher::updateTF(geometry_msgs::TransformStamped update_tf_msg)
 
 void RvizTFPublisher::includeTF(geometry_msgs::TransformStamped include_tf_msg)
 {
+
   active_tfs_.push_back(include_tf_msg);
 }
 
 //Odys: this tool takes TFs from active_tfs list and
 //publishes them to the topic /tf. However, we are already publishing our
 //transforms there (or to /tf_static) and this causes confusion to the subscribers.
+//TODO: Get TF from and to from active_tf_list
+//Compare with the ones in topic /tf
 void RvizTFPublisher::publishTFs()
 {
   static tf::TransformBroadcaster br;
 
   for (std::size_t i = 0; i < active_tfs_.size(); i++)
   {
+    active_tfs_[]
     tf::StampedTransform tf;
     active_tfs_[i].header.stamp = ros::Time::now();
     tf::transformStampedMsgToTF(active_tfs_[i], tf);
