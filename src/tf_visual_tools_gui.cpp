@@ -100,8 +100,8 @@ createTFTab::createTFTab(QWidget *parent) : QWidget(parent)
   //to_ = new QLineEdit;
   //Make "To" field a dropdown box as well, to select directly
   //TFs defined in the launch file
-  from_ = new QComboBox;
-  from_->setEditable(true);
+  to_ = new QComboBox;
+  to_->setEditable(true);
   to_->lineEdit()->setPlaceholderText("to TF");
   connect(to_, SIGNAL(textChanged(const QString &)), this, SLOT(toTextChanged(const QString &)));
 

@@ -92,17 +92,18 @@ void RvizTFPublisher::includeTF(geometry_msgs::TransformStamped include_tf_msg)
 //TODO: Switch to static transforms
 void RvizTFPublisher::publishTFs()
 {
-  //static tf::TransformBroadcaster br;
-  static tf2_ros::StaticTransformBroadcaster static_br;
+  static tf::TransformBroadcaster br;
+  //static tf2_ros::StaticTransformBroadcaster static_br;
   for (std::size_t i = 0; i < active_tfs_.size(); i++)
   {
-    //tf::StampedTransform tf;
-    geometry_msgs::TransformStamped static_transformStamped;
+    tf::StampedTransform tf;
+    //geometry_msgs::TransformStamped static_transformStamped;
 
     active_tfs_[i].header.stamp = ros::Time::now();
-    //tf::transformStampedMsgToTF(active_tfs_[i], static_transformStamped);
+    tf::transformStampedMsgToTF(active_tfs_[i], tf);
     //In case the above tf function is not compatible with static transforms
     //tf2_ros::fromMsg((active_tfs_[i], static_transformStamped);
+    /*
     static_transformStamped.header.stamp = active_tfs_[i].header.stamp;
     static_transformStamped.header.frame_id = active_tfs_[i].header.frame_id;
     static_transformStamped.child_frame_id = active_tfs_[i].child_frame_id;
@@ -113,8 +114,8 @@ void RvizTFPublisher::publishTFs()
     static_transformStamped.transform.rotation.y = active_tfs_[i].transform.rotation.y;
     static_transformStamped.transform.rotation.z = active_tfs_[i].transform.rotation.z;
     static_transformStamped.transform.rotation.w = active_tfs_[i].transform.rotation.w;
-
-    static_br.sendTransform(static_transformStamped);
+*/
+    br.sendTransform(tf);
   }
 }
 } // end namespace tf_visual_tools
