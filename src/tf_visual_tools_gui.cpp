@@ -241,6 +241,7 @@ void createTFTab::includeTF()
   {
     ROS_WARN("%s",ex.what());
     ros::Duration(1.0).sleep();
+    ROS_INFO("Failed to Include TF from: %s to: %s", from_tf_name_, to_tf_name_);
     //continue;
   }
   //Fill translation and rotation values as taken from /tf topic
@@ -537,9 +538,12 @@ void createTFTab::removeTF()
     active_tfs_->addItem(active_tf_list_[i].name_);
   }
 
-  // update from list
+  // update from list and to list after removing a TF
   from_->clear();
   from_->lineEdit()->setPlaceholderText("Add new or select existing");
+
+  to_->clear();
+  to_->lineEdit()->setPlaceholderText("To TF");
   std::list<std::string> names;
   for (std::size_t i = 0; i < active_tf_list_.size(); i++)
   {
@@ -554,8 +558,8 @@ void createTFTab::removeTF()
   for (it = names.begin(); it != names.end(); ++it)
   {
     from_->addItem(tr( (*it).c_str() ));
+    to_->addItem(tr( (*it).c_str() ));
   }
-  //TODO:update To list as well - is there one?
 
 }
 

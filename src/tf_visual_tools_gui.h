@@ -146,7 +146,7 @@ public:
   explicit createTFTab(QWidget *parent = 0);
   void updateFromList();
   void updateToList();
-    manipulateTFTab* manipulate_tab_;
+  manipulateTFTab* manipulate_tab_;
   void createNewIMarker(tf_data new_tf, bool has_menu);
 
 protected Q_SLOTS:
