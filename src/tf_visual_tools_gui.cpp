@@ -102,7 +102,7 @@ createTFTab::createTFTab(QWidget *parent) : QWidget(parent)
   //TFs defined in the launch file
   from_ = new QComboBox;
   from_->setEditable(true);
-  to_->setPlaceholderText("to TF");
+  to_->lineEdit()->setPlaceholderText("to TF");
   connect(to_, SIGNAL(textChanged(const QString &)), this, SLOT(toTextChanged(const QString &)));
 
   add_imarker_ = new QCheckBox("i marker?", this);
@@ -117,7 +117,7 @@ createTFTab::createTFTab(QWidget *parent) : QWidget(parent)
 
   include_tf_btn_ = new QPushButton(this);
   include_tf_btn_->setText("Include TF");
-  connect(incldue_tf_btn_, SIGNAL(clicked()), this, SLOT(includeTF()));
+  connect(include_tf_btn_, SIGNAL(clicked()), this, SLOT(includeTF()));
 
   remove_tf_btn_ = new QPushButton(this);
   remove_tf_btn_->setText("Remove TF");
@@ -139,7 +139,9 @@ createTFTab::createTFTab(QWidget *parent) : QWidget(parent)
 
   QHBoxLayout *create_row = new QHBoxLayout;
   create_row->addWidget(add_imarker_);
-  create_row->addWidget(add_imarker_menu_);
+  //Had to leave menus out to make space for
+  //include button
+  //create_row->addWidget(add_imarker_menu_);
   create_row->addWidget(create_tf_btn_);
   //Include Button in the same row as Create
   create_row->addWidget(include_tf_btn_);
@@ -239,7 +241,7 @@ void createTFTab::includeTF()
   {
     ROS_WARN("%s",ex.what());
     ros::Duration(1.0).sleep();
-    continue;
+    //continue;
   }
   //Fill translation and rotation values as taken from /tf topic
   new_tf.values_[0] = transformStamped.transform.translation.x;
@@ -482,7 +484,7 @@ void createTFTab::updateToList()
 
   // update to list
   to_->clear();
-  to_->setPlaceholderText("to TF");
+  to_->lineEdit()->setPlaceholderText("to TF");
   std::vector<std::string> names = remote_receiver_->getTFNames();
   for (std::size_t i = 0; i < names.size(); i++)
   {

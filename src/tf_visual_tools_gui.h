@@ -145,14 +145,15 @@ class createTFTab : public QWidget
 public:
   explicit createTFTab(QWidget *parent = 0);
   void updateFromList();
-  manipulateTFTab* manipulate_tab_;
+  void updateToList();
+    manipulateTFTab* manipulate_tab_;
   void createNewIMarker(tf_data new_tf, bool has_menu);
 
 protected Q_SLOTS:
   void createNewTF();
   void removeTF();
 
-  void includeNewTF();
+  void includeTF();
   void fromTextChanged(QString text);
   void toTextChanged(QString text);
 

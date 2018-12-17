@@ -45,7 +45,7 @@ RvizTFPublisher::RvizTFPublisher()
   create_tf_sub_ = nh_.subscribe("/rviz_tf_create", 10, &RvizTFPublisher::createTF, this);
   remove_tf_sub_ = nh_.subscribe("/rviz_tf_remove", 10, &RvizTFPublisher::removeTF, this);
   update_tf_sub_ = nh_.subscribe("/rviz_tf_update", 10, &RvizTFPublisher::updateTF, this);
-  include_tf_sub_ = nh_.subscribe("/rviz_tf_include", 10, &RvizTFPublisher::includeTF, this)
+  include_tf_sub_ = nh_.subscribe("/rviz_tf_include", 10, &RvizTFPublisher::includeTF, this);
 }
 
 void RvizTFPublisher::createTF(geometry_msgs::TransformStamped create_tf_msg)
@@ -89,17 +89,32 @@ void RvizTFPublisher::includeTF(geometry_msgs::TransformStamped include_tf_msg)
 //transforms there (or to /tf_static) and this causes confusion to the subscribers.
 //TODO: Get TF from and to from active_tf_list
 //Compare with the ones in topic /tf
+//TODO: Switch to static transforms
 void RvizTFPublisher::publishTFs()
 {
-  static tf::TransformBroadcaster br;
-
+  //static tf::TransformBroadcaster br;
+  static tf2_ros::StaticTransformBroadcaster static_br;
   for (std::size_t i = 0; i < active_tfs_.size(); i++)
   {
-    active_tfs_[]
-    tf::StampedTransform tf;
+    //tf::StampedTransform tf;
+    geometry_msgs::TransformStamped static_transformStamped;
+
     active_tfs_[i].header.stamp = ros::Time::now();
-    tf::transformStampedMsgToTF(active_tfs_[i], tf);
-    br.sendTransform(tf);
+    //tf::transformStampedMsgToTF(active_tfs_[i], static_transformStamped);
+    //In case the above tf function is not compatible with static transforms
+    //tf2_ros::fromMsg((active_tfs_[i], static_transformStamped);
+    static_transformStamped.header.stamp = active_tfs_[i].header.stamp;
+    static_transformStamped.header.frame_id = active_tfs_[i].header.frame_id;
+    static_transformStamped.child_frame_id = active_tfs_[i].child_frame_id;
+    static_transformStamped.transform.translation.x = active_tfs_[i].transform.translation.x;
+    static_transformStamped.transform.translation.y = active_tfs_[i].transform.translation.y;
+    static_transformStamped.transform.translation.z = active_tfs_[i].transform.translation.z;
+    static_transformStamped.transform.rotation.x = active_tfs_[i].transform.rotation.x;
+    static_transformStamped.transform.rotation.y = active_tfs_[i].transform.rotation.y;
+    static_transformStamped.transform.rotation.z = active_tfs_[i].transform.rotation.z;
+    static_transformStamped.transform.rotation.w = active_tfs_[i].transform.rotation.w;
+
+    static_br.sendTransform(static_transformStamped);
   }
 }
 } // end namespace tf_visual_tools
