@@ -85,6 +85,8 @@ struct tf_data{
   double values_[6];
 
   geometry_msgs::TransformStamped getTFMsg();
+  geometry_msgs::TransformStamped getTFMsg2();
+
 };
 
 /**

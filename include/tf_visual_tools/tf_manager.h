@@ -43,6 +43,7 @@
 //Switching to static transforms which better suit
 //providentia project use-case
 #include <tf2_ros/static_transform_broadcaster.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 
 #include <Eigen/Core>
 
@@ -66,7 +67,7 @@ private:
   //Providentia bridge_demo use-case:
   //TFs are defined in the launch files, so we want to load these
   //and use tf_visual_tools for editing, not creating new TFs
-  void includeTF(geometry_msgs::StaticTransformStamped include_tf_msg);
+  void includeTF(geometry_msgs::TransformStamped include_tf_msg);
 
   ros::Subscriber create_tf_sub_;
   ros::Subscriber remove_tf_sub_;

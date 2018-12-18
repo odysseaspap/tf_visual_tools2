@@ -103,7 +103,7 @@ createTFTab::createTFTab(QWidget *parent) : QWidget(parent)
   to_ = new QComboBox;
   to_->setEditable(true);
   to_->lineEdit()->setPlaceholderText("to TF");
-  connect(to_, SIGNAL(textChanged(const QString &)), this, SLOT(toTextChanged(const QString &)));
+  connect(to_, SIGNAL(editTextChanged(const QString &)), this, SLOT(toTextChanged(const QString &)));
 
   add_imarker_ = new QCheckBox("i marker?", this);
   add_imarker_->setCheckState(Qt::Unchecked);
@@ -227,22 +227,23 @@ void createTFTab::includeTF()
   new_tf.id_ = id_++;
   new_tf.from_ = from_tf_name_;
   new_tf.to_ = to_tf_name_;
-
   //create a tf listener as here: http://wiki.ros.org/tf2/Tutorials/Writing%20a%20tf2%20listener%20%28C%2B%2B%29
+
   tf2_ros::Buffer tfBuffer;
   tf2_ros::TransformListener tfListener(tfBuffer);
 
-
+ //sendTransform and StampedTransform have opposite ordering of parent and child.
+ //So, I have to reverse the source and dest frames in lookupTransform call
   geometry_msgs::TransformStamped transformStamped;
   try{
-    transformStamped = tfBuffer.lookupTransform(to_tf_name_, from_tf_name_, ros::Time(0));
+    transformStamped = tfBuffer.lookupTransform(from_tf_name_, to_tf_name_, ros::Time(0));
   }
   catch (tf2::TransformException &ex)
   {
     ROS_WARN("%s",ex.what());
     ros::Duration(1.0).sleep();
-    ROS_INFO("Failed to Include TF from: %s to: %s", from_tf_name_, to_tf_name_);
-    //continue;
+    //ROS_INFO("Failed to Include TF from: %s to: %s", from_tf_name_, to_tf_name_);
+
   }
   //Fill translation and rotation values as taken from /tf topic
   new_tf.values_[0] = transformStamped.transform.translation.x;
@@ -259,9 +260,25 @@ void createTFTab::includeTF()
 
   double roll, pitch, yaw;
   tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
-  new_tf.values_[0] = roll;
-  new_tf.values_[1] = pitch;
-  new_tf.values_[2] = yaw;
+  //These values are in RAD but because this tool
+  //expects them in deg and transforms them in rad
+  //before sending the msg, we make a transform from rad_to_deg here
+  //double rad_to_deg = 180.0 / 3.14159265;
+
+  new_tf.values_[3] = roll;//* rad_to_deg;
+  new_tf.values_[4] = pitch;//*rad_to_deg;
+  new_tf.values_[5] = yaw;//*rad_to_deg;
+
+  std::cout << "Read the following transformation: " << std::endl;
+  std::cout << "Translation: " << std::endl;
+  std::cout << new_tf.values_[0] << std:: endl;
+  std::cout << new_tf.values_[1] << std:: endl;
+  std::cout << new_tf.values_[2] << std:: endl;
+  std::cout << "Rotation: " << std::endl;
+  std::cout << new_tf.values_[3] << std:: endl;
+  std::cout << new_tf.values_[4] << std:: endl;
+  std::cout << new_tf.values_[5] << std:: endl;
+  std::cin.ignore();
 
   std::string text = std::to_string(new_tf.id_) + ": " + new_tf.from_ + "-" + new_tf.to_;
   new_tf.name_ = QString::fromStdString(text);
@@ -288,6 +305,7 @@ void createTFTab::includeTF()
 
   updateFromList();
   updateToList();
+
 }
 
 void createTFTab::createNewIMarker(tf_data new_tf, bool has_menu)

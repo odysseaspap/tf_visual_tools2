@@ -78,7 +78,7 @@ void RvizTFPublisher::updateTF(geometry_msgs::TransformStamped update_tf_msg)
   }
 }
 
-void RvizTFPublisher::includeTF(geometry_msgs::StaticTransformStamped include_tf_msg)
+void RvizTFPublisher::includeTF(geometry_msgs::TransformStamped include_tf_msg)
 {
 
   active_tfs_.push_back(include_tf_msg);
@@ -102,7 +102,7 @@ void RvizTFPublisher::publishTFs()
     active_tfs_[i].header.stamp = ros::Time::now();
     //tf::transformStampedMsgToTF(active_tfs_[i], tf);
     //In case the above tf function is not compatible with static transforms
-    //tf2_ros::fromMsg((active_tfs_[i], static_transformStamped);
+    //tf2::fromMsg(active_tfs_[i], static_transformStamped);
 
     static_transformStamped.header.stamp = active_tfs_[i].header.stamp;
     static_transformStamped.header.frame_id = active_tfs_[i].header.frame_id;
