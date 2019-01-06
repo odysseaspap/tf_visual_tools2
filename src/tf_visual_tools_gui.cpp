@@ -265,12 +265,16 @@ void createTFTab::includeTF()
   //before sending the msg, we make a transform from rad_to_deg here
   double rad_to_deg = 180.0/3.14159265;
 
-  new_tf.values_[3] = roll*rad_to_deg;
-  new_tf.values_[4] = pitch*rad_to_deg;
-  new_tf.values_[5] = yaw*rad_to_deg;
+  new_tf.values_[3] = roll;
+  new_tf.values_[4] = pitch;
+  new_tf.values_[5] = yaw;
+
+  new_tf.values_[3] *=rad_to_deg;
+  new_tf.values_[4] *=rad_to_deg;
+  new_tf.values_[5] *=rad_to_deg;
 
 /*
-  std::cout << "Read the following transformation: " << std::endl;
+  std::cout << "Read the following transformation : " << std::endl;
   std::cout << "Translation: " << std::endl;
   std::cout << new_tf.values_[0] << std:: endl;
   std::cout << new_tf.values_[1] << std:: endl;
@@ -281,6 +285,7 @@ void createTFTab::includeTF()
   std::cout << new_tf.values_[5] << std:: endl;
   std::cin.ignore();
 */
+
   std::string text = std::to_string(new_tf.id_) + ": " + new_tf.from_ + "-" + new_tf.to_;
   new_tf.name_ = QString::fromStdString(text);
 
