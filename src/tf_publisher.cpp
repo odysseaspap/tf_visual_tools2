@@ -48,9 +48,10 @@ int main(int argc, char** argv)
 
   tf_visual_tools::RvizTFPublisher tf_pub;
 
-  ros::Rate rate(30.0); // hz
+  ros::Rate rate(3.0); // hz
   while ( ros::ok() )
   {
+    //publish all transforms declared in active_tfs list
     tf_pub.publishTFs();
     rate.sleep();
   }

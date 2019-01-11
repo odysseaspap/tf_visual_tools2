@@ -215,8 +215,7 @@ void createTFTab::createNewTF()
   updateToList();
 
 }
-//TODO: Get already existing TFs from topic /tf (or /tf_static)
-//and add them to the topic /rviz_tf_include, without republishing the same TFs
+
 void createTFTab::includeTF()
 {
   ROS_DEBUG_STREAM_NAMED("includeTF","include TF button pressed.");
@@ -236,14 +235,12 @@ void createTFTab::includeTF()
  //So, I have to reverse the source and dest frames in lookupTransform call
   geometry_msgs::TransformStamped transformStamped;
   try{
-    transformStamped = tfBuffer.lookupTransform(from_tf_name_, to_tf_name_, ros::Time(0));
+    transformStamped = tfBuffer.lookupTransform(from_tf_name_, to_tf_name_, ros::Time(0), ros::Duration(3.0));
   }
   catch (tf2::TransformException &ex)
   {
     ROS_WARN("%s",ex.what());
     ros::Duration(1.0).sleep();
-    //ROS_INFO("Failed to Include TF from: %s to: %s", from_tf_name_, to_tf_name_);
-
   }
   //Fill translation and rotation values as taken from /tf topic
   new_tf.values_[0] = transformStamped.transform.translation.x;
@@ -284,8 +281,8 @@ void createTFTab::includeTF()
   std::cout << new_tf.values_[4] << std:: endl;
   std::cout << new_tf.values_[5] << std:: endl;
   std::cin.ignore();
-*/
 
+*/
   std::string text = std::to_string(new_tf.id_) + ": " + new_tf.from_ + "-" + new_tf.to_;
   new_tf.name_ = QString::fromStdString(text);
 

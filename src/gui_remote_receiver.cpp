@@ -45,11 +45,11 @@ TFRemoteReceiver::TFRemoteReceiver()
   //note that our /tf_static topic is latched
   //advertise() returns a Publisher object which allows you to
   //publish messages on that topic through a call to publish().
-  create_tf_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("/rviz_tf_create", 10);
-  remove_tf_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("/rviz_tf_remove", 10);
-  update_tf_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("/rviz_tf_update", 10);
+  create_tf_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("/rviz_tf_create", 100);
+  remove_tf_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("/rviz_tf_remove", 100);
+  update_tf_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("/rviz_tf_update", 100);
   //since I will include a lot of TFs here via the launch file, bigger queue size might be needed
-  include_tf_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("/rviz_tf_include", 10);
+  include_tf_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("/rviz_tf_include", 100);
 
 
   tf_listener_ = new tf2_ros::TransformListener(tf_buffer_);
@@ -80,7 +80,7 @@ void TFRemoteReceiver::includeTF(geometry_msgs::TransformStamped include_tf_msg)
 
 std::vector<std::string> TFRemoteReceiver::getTFNames()
 {
-  //get a std::vector of available frame ids. 
+  //get a std::vector of available frame ids.
   tf_buffer_._getFrameStrings(tf_names_);
 
   return tf_names_;
