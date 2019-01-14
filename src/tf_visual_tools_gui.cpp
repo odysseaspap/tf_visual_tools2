@@ -139,12 +139,12 @@ createTFTab::createTFTab(QWidget *parent) : QWidget(parent)
 
   QHBoxLayout *create_row = new QHBoxLayout;
   create_row->addWidget(add_imarker_);
-  //Had to leave menus out to make space for
-  //include button
-  //create_row->addWidget(add_imarker_menu_);
+  create_row->addWidget(add_imarker_menu_);
   create_row->addWidget(create_tf_btn_);
-  //Include Button in the same row as Create
-  create_row->addWidget(include_tf_btn_);
+
+  QHBoxLayout *include_row = new QHBoxLayout;
+  //Include Button, one row below Create Button
+  include_row->addWidget(include_tf_btn_);
 
   QHBoxLayout *remove_row = new QHBoxLayout;
   remove_row->addWidget(active_tfs_);
@@ -154,6 +154,7 @@ createTFTab::createTFTab(QWidget *parent) : QWidget(parent)
   add_controls->addLayout(from_row);
   add_controls->addLayout(to_row);
   add_controls->addLayout(create_row);
+  add_controls->addLayout(include_row);
   add_section->setLayout(add_controls);
 
   QGroupBox *remove_section = new QGroupBox(tr("Remove TF"));
@@ -609,8 +610,8 @@ manipulateTFTab::manipulateTFTab(QWidget *parent) : QWidget(parent)
 
   QLabel *rpy_delta_label = new QLabel(QChar(0x0394) + tr("rpy (deg):"));
   rpy_delta_box_ = new QLineEdit;
-  rpy_delta_box_->setText("5.0");
-  rpy_delta_ = 5.0;
+  rpy_delta_box_->setText("1.0");
+  rpy_delta_ = 1.0;
   connect(rpy_delta_box_, SIGNAL(textChanged(const QString &)), this, SLOT(setRPYDelta(const QString &)));
 
   QGroupBox *tf_ctrl_section = new QGroupBox(tr("Manipulate TF"));
