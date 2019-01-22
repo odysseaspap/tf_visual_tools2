@@ -1,5 +1,7 @@
 # TF Visual Tools
 
+Modification of original tf_visual_tools package (https://github.com/PickNikRobotics/tf_visual_tools) to support loading and editing of TFs defined through launch files. The transformations must be pubslihed in the TF2 /tf_static topic. Following is the original README:
+
 Easily move `\tf` frames around using your keyboard or mouse. Use as a simple calibration-by-eye tool or add menus and interative markers to create customized functionality.
 
 TF Visual Tools developed by [Andy McEvoy](http://github.com/mcevoyandy) and [Dave Coleman](http://dav.ee).
