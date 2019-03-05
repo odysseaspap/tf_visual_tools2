@@ -1,5 +1,5 @@
 
-This repository is a modification of the tf_visual_tools package: https://github.com/PickNikRobotics/tf_visual_tools. It extends the original by supporting loading and editing of TFs defined through launch files. Therefore, the user can not only set and calibrate new TFs but also find the optimal calibration for the TFs that are already published, while having immediate feedback of the new parameters through rviz. Following is the original README, with updated information:
+This repository is a modification of the tf_visual_tools package: https://github.com/PickNikRobotics/tf_visual_tools. It extends the original by supporting loading and editing of *static* TFs defined through launch files. Therefore, the user can not only set and calibrate new TFs but also find the optimal calibration for the TFs that are already published, while having immediate feedback of the new parameters through rviz. Following is the original README, with updated information:
 
 # TF Visual Tools
 
