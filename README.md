@@ -1,5 +1,5 @@
 
-Modification of original tf_visual_tools package (https://github.com/PickNikRobotics/tf_visual_tools) to support loading and editing of TFs defined through launch files. Following is the original README:
+This repository is a modification of the tf_visual_tools package: https://github.com/PickNikRobotics/tf_visual_tools. It extends the original by supporting loading and editing of TFs defined through launch files. Therefore, the user can not only set and calibrate new TFs but also find the optimal calibration for the TFs that are already published, while having immediate feedback of the new parameters through rviz. Following is the original README, with updated information:
 
 # TF Visual Tools
 
@@ -25,7 +25,7 @@ To build this package, ``git clone`` this repo into a [catkin workspace](http://
 
 These steps are already completed when running `roslaunch tf_visual_tools demo.launch`
 
-### Creating and Removing TFs
+### Creating, Removing and Including TFs
 ![](resources/add-remove.png)
 
 #### To create a TF:
@@ -42,6 +42,11 @@ These steps are already completed when running `roslaunch tf_visual_tools demo.l
 #### To remove a TF:
 1. select the TF from the dropdown list.
 1. click `Remove TF`
+
+#### To include a TF (new in tf_visual_tools2):
+1. select a TF from the `from:` dropdown list or type a new name.
+1. select a TF from the `to:` dropdown list or type a new name.
+1. click `Include TF`.
 
 ### Interactive Markers and Menu Selections
 
