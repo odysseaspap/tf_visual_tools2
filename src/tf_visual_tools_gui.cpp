@@ -74,6 +74,8 @@ void TFVisualTools::updateTabData(int index)
 {
   new_manipulate_tab_->updateTFList();
   new_create_tab_->updateFromList();
+  new_create_tab_->updateToList();
+
 
   if (index == 1) // manipulate tab selected.
   {
@@ -95,9 +97,13 @@ createTFTab::createTFTab(QWidget *parent) : QWidget(parent)
   //from_->addItem(tr("Select existing or add new TF"));
   connect(from_, SIGNAL(editTextChanged(const QString &)), this, SLOT(fromTextChanged(const QString &)));
 
-  to_ = new QLineEdit;
-  to_->setPlaceholderText("to TF");
-  connect(to_, SIGNAL(textChanged(const QString &)), this, SLOT(toTextChanged(const QString &)));
+  //to_ = new QLineEdit;
+  //Make "To" field a dropdown box as well, to select directly
+  //TFs defined in the launch file
+  to_ = new QComboBox;
+  to_->setEditable(true);
+  to_->lineEdit()->setPlaceholderText("to TF");
+  connect(to_, SIGNAL(editTextChanged(const QString &)), this, SLOT(toTextChanged(const QString &)));
 
   add_imarker_ = new QCheckBox("i marker?", this);
   add_imarker_->setCheckState(Qt::Unchecked);
@@ -108,6 +114,10 @@ createTFTab::createTFTab(QWidget *parent) : QWidget(parent)
   create_tf_btn_ = new QPushButton(this);
   create_tf_btn_->setText("Create TF");
   connect(create_tf_btn_, SIGNAL(clicked()), this, SLOT(createNewTF()));
+
+  include_tf_btn_ = new QPushButton(this);
+  include_tf_btn_->setText("Include TF");
+  connect(include_tf_btn_, SIGNAL(clicked()), this, SLOT(includeTF()));
 
   remove_tf_btn_ = new QPushButton(this);
   remove_tf_btn_->setText("Remove TF");
@@ -132,6 +142,10 @@ createTFTab::createTFTab(QWidget *parent) : QWidget(parent)
   create_row->addWidget(add_imarker_menu_);
   create_row->addWidget(create_tf_btn_);
 
+  QHBoxLayout *include_row = new QHBoxLayout;
+  //Include Button, one row below Create Button
+  include_row->addWidget(include_tf_btn_);
+
   QHBoxLayout *remove_row = new QHBoxLayout;
   remove_row->addWidget(active_tfs_);
   remove_row->addWidget(remove_tf_btn_);
@@ -140,6 +154,7 @@ createTFTab::createTFTab(QWidget *parent) : QWidget(parent)
   add_controls->addLayout(from_row);
   add_controls->addLayout(to_row);
   add_controls->addLayout(create_row);
+  add_controls->addLayout(include_row);
   add_section->setLayout(add_controls);
 
   QGroupBox *remove_section = new QGroupBox(tr("Remove TF"));
@@ -198,6 +213,103 @@ void createTFTab::createNewTF()
   remote_receiver_->createTF(new_tf.getTFMsg());
 
   updateFromList();
+  updateToList();
+
+}
+
+void createTFTab::includeTF()
+{
+  ROS_DEBUG_STREAM_NAMED("includeTF","include TF button pressed.");
+  ROS_DEBUG_STREAM_NAMED("includeTF","from:to = " << from_tf_name_ << ":" << to_tf_name_);
+
+  // include TF created from launch file
+  tf_data new_tf;
+  new_tf.id_ = id_++;
+  new_tf.from_ = from_tf_name_;
+  new_tf.to_ = to_tf_name_;
+  //create a tf listener as here: http://wiki.ros.org/tf2/Tutorials/Writing%20a%20tf2%20listener%20%28C%2B%2B%29
+
+  tf2_ros::Buffer tfBuffer;
+  tf2_ros::TransformListener tfListener(tfBuffer);
+
+ //sendTransform and StampedTransform have opposite ordering of parent and child.
+ //So, I have to reverse the source and dest frames in lookupTransform call
+  geometry_msgs::TransformStamped transformStamped;
+  try{
+    transformStamped = tfBuffer.lookupTransform(from_tf_name_, to_tf_name_, ros::Time(0), ros::Duration(3.0));
+  }
+  catch (tf2::TransformException &ex)
+  {
+    ROS_WARN("%s",ex.what());
+    ros::Duration(1.0).sleep();
+  }
+  //Fill translation and rotation values as taken from /tf topic
+  new_tf.values_[0] = transformStamped.transform.translation.x;
+  new_tf.values_[1] = transformStamped.transform.translation.y;
+  new_tf.values_[2] = transformStamped.transform.translation.z;
+
+  //We listen to quaternion values so they must be
+  //first transformed to Roll, Pitch, Yaw
+  tf::Quaternion quat;
+  quat[0] = transformStamped.transform.rotation.x;
+  quat[1] = transformStamped.transform.rotation.y;
+  quat[2] = transformStamped.transform.rotation.z;
+  quat[3] = transformStamped.transform.rotation.w;
+
+  double roll, pitch, yaw;
+  tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
+  //These values are in RAD. However, because this tool
+  //expects them in deg and transforms them in rad
+  //before sending the msg, we make a transform from rad_to_deg here
+  double rad_to_deg = 180.0/3.14159265;
+
+  new_tf.values_[3] = roll;
+  new_tf.values_[4] = pitch;
+  new_tf.values_[5] = yaw;
+
+  new_tf.values_[3] *=rad_to_deg;
+  new_tf.values_[4] *=rad_to_deg;
+  new_tf.values_[5] *=rad_to_deg;
+
+/*
+  std::cout << "Read the following transformation : " << std::endl;
+  std::cout << "Translation: " << std::endl;
+  std::cout << new_tf.values_[0] << std:: endl;
+  std::cout << new_tf.values_[1] << std:: endl;
+  std::cout << new_tf.values_[2] << std:: endl;
+  std::cout << "Rotation: " << std::endl;
+  std::cout << new_tf.values_[3] << std:: endl;
+  std::cout << new_tf.values_[4] << std:: endl;
+  std::cout << new_tf.values_[5] << std:: endl;
+  std::cin.ignore();
+
+*/
+  std::string text = std::to_string(new_tf.id_) + ": " + new_tf.from_ + "-" + new_tf.to_;
+  new_tf.name_ = QString::fromStdString(text);
+
+  // interactive marker
+  new_tf.imarker_ = false;
+  if (add_imarker_->isChecked())
+  {
+    new_tf.imarker_ = true;
+    ROS_DEBUG_STREAM_NAMED("includeTF","imarker = " << new_tf.imarker_);
+    createNewIMarker(new_tf, add_imarker_menu_->isChecked());
+  }
+  active_tf_list_.push_back(new_tf);
+
+  // repopulate dropdown box
+  active_tfs_->clear();
+  for (std::size_t i = 0; i < active_tf_list_.size(); i++)
+  {
+    active_tfs_->addItem(active_tf_list_[i].name_);
+  }
+
+  // publish new tf
+  remote_receiver_->includeTF(new_tf.getTFMsg());
+
+  updateFromList();
+  updateToList();
+
 }
 
 void createTFTab::createNewIMarker(tf_data new_tf, bool has_menu)
@@ -388,6 +500,21 @@ void createTFTab::updateFromList()
   }
 }
 
+void createTFTab::updateToList()
+{
+  // give tf a chance to update
+  ros::Duration(0.25).sleep();
+
+  // update to list
+  to_->clear();
+  to_->lineEdit()->setPlaceholderText("to TF");
+  std::vector<std::string> names = remote_receiver_->getTFNames();
+  for (std::size_t i = 0; i < names.size(); i++)
+  {
+    to_->addItem(tr(names[i].c_str()));
+  }
+}
+
 geometry_msgs::TransformStamped tf_data::getTFMsg()
 {
   geometry_msgs::TransformStamped msg;
@@ -433,9 +560,12 @@ void createTFTab::removeTF()
     active_tfs_->addItem(active_tf_list_[i].name_);
   }
 
-  // update from list
+  // update from list and to list after removing a TF
   from_->clear();
   from_->lineEdit()->setPlaceholderText("Add new or select existing");
+
+  to_->clear();
+  to_->lineEdit()->setPlaceholderText("To TF");
   std::list<std::string> names;
   for (std::size_t i = 0; i < active_tf_list_.size(); i++)
   {
@@ -450,6 +580,7 @@ void createTFTab::removeTF()
   for (it = names.begin(); it != names.end(); ++it)
   {
     from_->addItem(tr( (*it).c_str() ));
+    to_->addItem(tr( (*it).c_str() ));
   }
 
 }
@@ -479,8 +610,8 @@ manipulateTFTab::manipulateTFTab(QWidget *parent) : QWidget(parent)
 
   QLabel *rpy_delta_label = new QLabel(QChar(0x0394) + tr("rpy (deg):"));
   rpy_delta_box_ = new QLineEdit;
-  rpy_delta_box_->setText("5.0");
-  rpy_delta_ = 5.0;
+  rpy_delta_box_->setText("1.0");
+  rpy_delta_ = 1.0;
   connect(rpy_delta_box_, SIGNAL(textChanged(const QString &)), this, SLOT(setRPYDelta(const QString &)));
 
   QGroupBox *tf_ctrl_section = new QGroupBox(tr("Manipulate TF"));

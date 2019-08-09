@@ -42,10 +42,10 @@ RvizTFPublisher::RvizTFPublisher()
 {
   //each of the create, update etc methods publish to a unique topic when the relevant button is
   //pressed in the GUI. Here, we subscribe to these topics to do the essential callbacks
-  create_tf_sub_ = nh_.subscribe("/rviz_tf_create", 10, &RvizTFPublisher::createTF, this);
-  remove_tf_sub_ = nh_.subscribe("/rviz_tf_remove", 10, &RvizTFPublisher::removeTF, this);
-  update_tf_sub_ = nh_.subscribe("/rviz_tf_update", 10, &RvizTFPublisher::updateTF, this);
-  //include_tf_sub_ = nh_.subscribe("/rviz_tf_include", 10, &RvizTFPublisher::includeTF, this)
+  create_tf_sub_ = nh_.subscribe("/rviz_tf_create", 100, &RvizTFPublisher::createTF, this);
+  remove_tf_sub_ = nh_.subscribe("/rviz_tf_remove", 100, &RvizTFPublisher::removeTF, this);
+  update_tf_sub_ = nh_.subscribe("/rviz_tf_update", 100, &RvizTFPublisher::updateTF, this);
+  include_tf_sub_ = nh_.subscribe("/rviz_tf_include", 100, &RvizTFPublisher::includeTF, this);
 }
 
 void RvizTFPublisher::createTF(geometry_msgs::TransformStamped create_tf_msg)
@@ -77,26 +77,40 @@ void RvizTFPublisher::updateTF(geometry_msgs::TransformStamped update_tf_msg)
     }
   }
 }
-/*
+
 void RvizTFPublisher::includeTF(geometry_msgs::TransformStamped include_tf_msg)
 {
+
   active_tfs_.push_back(include_tf_msg);
 }
 
-*/
-//Odys: this tool takes TFs from active_tfs list and
-//publishes them to the topic /tf. However, we are already publishing our
-//transforms there (or to /tf_static) and this causes confusion to the subscribers.
+//Publish transforms to /tf_static
 void RvizTFPublisher::publishTFs()
 {
-  static tf::TransformBroadcaster br;
-
+  //static tf::TransformBroadcaster br;
+  static tf2_ros::StaticTransformBroadcaster static_br;
   for (std::size_t i = 0; i < active_tfs_.size(); i++)
   {
-    tf::StampedTransform tf;
+    //tf::StampedTransform tf;
+    geometry_msgs::TransformStamped static_transformStamped;
+
     active_tfs_[i].header.stamp = ros::Time::now();
-    tf::transformStampedMsgToTF(active_tfs_[i], tf);
-    br.sendTransform(tf);
+    //tf::transformStampedMsgToTF(active_tfs_[i], tf);
+    //In case the above tf function is not compatible with static transforms
+    //tf2::fromMsg(active_tfs_[i], static_transformStamped);
+
+    static_transformStamped.header.stamp = active_tfs_[i].header.stamp;
+    static_transformStamped.header.frame_id = active_tfs_[i].header.frame_id;
+    static_transformStamped.child_frame_id = active_tfs_[i].child_frame_id;
+    static_transformStamped.transform.translation.x = active_tfs_[i].transform.translation.x;
+    static_transformStamped.transform.translation.y = active_tfs_[i].transform.translation.y;
+    static_transformStamped.transform.translation.z = active_tfs_[i].transform.translation.z;
+    static_transformStamped.transform.rotation.x = active_tfs_[i].transform.rotation.x;
+    static_transformStamped.transform.rotation.y = active_tfs_[i].transform.rotation.y;
+    static_transformStamped.transform.rotation.z = active_tfs_[i].transform.rotation.z;
+    static_transformStamped.transform.rotation.w = active_tfs_[i].transform.rotation.w;
+
+    static_br.sendTransform(static_transformStamped);
   }
 }
 } // end namespace tf_visual_tools
