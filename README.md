@@ -26,7 +26,7 @@ To build this package, ``git clone`` this repo into a [catkin workspace](http://
 These steps are already completed when running `roslaunch tf_visual_tools demo.launch`
 
 ### Creating, Removing and Including TFs
-![](resources/add-remove.png)
+![](resources/includeTF.png)
 
 #### To create a TF:
 1. select a TF from the `from:` dropdown list or type a new name.
